@@ -25,8 +25,8 @@ def parse_page_range(range_str, total_pages):
         if '-' in part:
             start, end = map(str.strip, part.split('-'))
             start = int(start) - 1  # Convert to 0-based index
-            end = int(end)  # Keep end as 1-based for range
-            pages.update(range(start, end))
+            end = int(end) - 1  # Convert to 0-based index
+            pages.update(range(start, end + 1))  # Include the end page
         else:
             pages.add(int(part.strip()) - 1)  # Convert to 0-based index
     
@@ -97,33 +97,37 @@ def invert_pdf_colors(input_pdf, output_pdf, page_range=None, intensity=1.0, tex
     
     # Process each page
     temp_paths = []
-    for i, page in enumerate(pages):
-        temp_path = f'temp/page_{i}.jpg'
+    try:
+        for i, page in enumerate(pages):
+            temp_path = f'temp/page_{i}.jpg'
+            
+            if i in pages_to_invert:
+                # Convert to grayscale and apply adjusted inversion
+                gray_page = page.convert('L')
+                processed_page = adjust_inversion(gray_page, intensity, text_darkness)
+                processed_page.save(temp_path, 'JPEG', quality=95)
+            else:
+                # Save original page without inversion
+                page.convert('RGB').save(temp_path, 'JPEG', quality=95)
+            
+            temp_paths.append(temp_path)
         
-        if i in pages_to_invert:
-            # Convert to grayscale and apply adjusted inversion
-            gray_page = page.convert('L')
-            processed_page = adjust_inversion(gray_page, intensity, text_darkness)
-            processed_page.save(temp_path, 'JPEG')
-        else:
-            # Save original page without inversion
-            page.save(temp_path, 'JPEG')
+        # Create new PDF with processed pages
+        pdf = FPDF()
+        for page in temp_paths:
+            pdf.add_page()
+            pdf.image(page, x=0, y=0, w=210)  # A4 width = 210mm
         
-        temp_paths.append(temp_path)
-    
-    # Create new PDF with processed pages
-    pdf = FPDF()
-    for page in temp_paths:
-        pdf.add_page()
-        pdf.image(page, x=0, y=0, w=210)  # A4 width = 210mm
-    
-    # Save the modified PDF
-    pdf.output(output_pdf)
-    
-    # Clean up temporary files
-    for page in temp_paths:
-        os.remove(page)
-    os.rmdir('temp')
+        # Save the modified PDF
+        pdf.output(output_pdf)
+        
+    finally:
+        # Clean up temporary files
+        for temp_path in temp_paths:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        if os.path.exists('temp'):
+            os.rmdir('temp')
 
 def main():
     # Set up argument parser
