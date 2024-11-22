@@ -74,7 +74,12 @@ def adjust_inversion(image, intensity=0.95, text_darkness=0.8):
     
     return Image.fromarray(img_array)
 
-def invert_pdf_colors(input_pdf, output_pdf, page_range=None, intensity=1.0, text_darkness=0.8):
+class CustomPDF(FPDF):
+    def __init__(self, orientation='P', unit='mm', format='A4'):
+        super().__init__(orientation=orientation, unit=unit, format=format)
+        self.set_auto_page_break(False)  # Disable auto page break to prevent unwanted breaks
+
+def invert_pdf_colors(input_pdf, output_pdf, page_range=None, intensity=0.95, text_darkness=0.8):
     """
     Convert specified pages of a PDF from black text on white background to light text on dark background.
     
@@ -85,8 +90,8 @@ def invert_pdf_colors(input_pdf, output_pdf, page_range=None, intensity=1.0, tex
         intensity (float): Overall inversion intensity (0.0 to 1.0)
         text_darkness (float): How dark the text should be (0.0 to 1.0)
     """
-    # Convert PDF to images
-    pages = convert_from_path(input_pdf)
+    # Convert PDF to images with high DPI for better quality
+    pages = convert_from_path(input_pdf, dpi=200)
     
     # Parse page range
     pages_to_invert = parse_page_range(page_range, len(pages))
@@ -98,6 +103,17 @@ def invert_pdf_colors(input_pdf, output_pdf, page_range=None, intensity=1.0, tex
     # Process each page
     temp_paths = []
     try:
+        # Get dimensions of first page
+        first_page = pages[0]
+        width_px, height_px = first_page.size
+        
+        # Convert pixels to mm (assuming 200 DPI)
+        width_mm = width_px * 25.4 / 200  # 25.4 mm per inch
+        height_mm = height_px * 25.4 / 200
+        
+        # Initialize PDF with custom page size
+        pdf = CustomPDF(format=(width_mm, height_mm))
+        
         for i, page in enumerate(pages):
             temp_path = f'temp/page_{i}.jpg'
             
@@ -111,12 +127,10 @@ def invert_pdf_colors(input_pdf, output_pdf, page_range=None, intensity=1.0, tex
                 page.convert('RGB').save(temp_path, 'JPEG', quality=95)
             
             temp_paths.append(temp_path)
-        
-        # Create new PDF with processed pages
-        pdf = FPDF()
-        for page in temp_paths:
+            
+            # Add page to PDF with correct dimensions
             pdf.add_page()
-            pdf.image(page, x=0, y=0, w=210)  # A4 width = 210mm
+            pdf.image(temp_path, x=0, y=0, w=width_mm, h=height_mm)
         
         # Save the modified PDF
         pdf.output(output_pdf)
