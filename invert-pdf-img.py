@@ -38,7 +38,7 @@ def parse_page_range(range_str, total_pages):
 
 def adjust_inversion(image, intensity=0.95, text_darkness=0.8):
     """
-    Invert image colors with adjustable intensity and text darkness.
+    Invert image colours with adjustable intensity and text darkness.
     
     Args:
         image (PIL.Image): Input image
@@ -146,7 +146,7 @@ def invert_pdf_colors(input_pdf, output_pdf, page_range=None, intensity=0.95, te
 def main():
     # Set up argument parser
     parser = argparse.ArgumentParser(
-        description='Convert specified pages of a PDF from dark text on light background to light text on dark background.'
+        description='Invert colour on specified pages of a PDF. Useful for making dark mode pdfs.'
     )
     parser.add_argument(
         'input_pdf',
