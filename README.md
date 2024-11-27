@@ -4,10 +4,15 @@ A simple python script to invert the colours of a PDF file.
 
 ## Installation
 
-Install requirements with:
+Install python requirements with:
 ```
 pip install -r requirements.txt
 ```
+
+You will also need to install `poppler-utils` for the `pdftoppm` command:
+- Windows: Download and install from poppler releases
+- Mac: `brew install poppler`
+- Linux: `sudo apt-get install poppler-utils`
 
 ## Usage
 
