@@ -16,11 +16,11 @@ You will also need to install `poppler-utils` for the `pdftoppm` command:
 
 ## Usage
 
-Call as script - `python invert-pdf-img.py`.
+Call as script - `python invert-pdf-colors.py`.
 
-See help, `python invert-pdf-img.py -h`, for more information:
+See help, `python invert-pdf-colors.py -h`, for more information:
 ```
-usage: invert-pdf-img.py [-h] [-o OUTPUT] [-p PAGES] [-i INTENSITY]
+usage: invert-pdf-colors.py [-h] [-o OUTPUT] [-p PAGES] [-i INTENSITY]
                          [-t TEXT_DARKNESS]
                          input_pdf
 
